@@ -14,15 +14,14 @@ File file_log;
 
 /*
 sd card pinout:
-CS GPIO2
-SCK GPIO18
-MISO GPIO19
-MOSI GPIO23
-*/
+#define SD_CS    13   // Chip Select (CS) pin for the SD card
+#define SD_SCK   14  // Clock (SCK) pin
+#define SD_MISO  2  // Master In Slave Out (MISO) pin
+#define SD_MOSI  15  // Master Out Slave In (MOSI) pin
 
 /*
 canbus pinout
-tx = GPIO_NUM_14;
+tx = GPIO_NUM_26;
 rx = GPIO_NUM_27;
 */
 
@@ -30,8 +29,8 @@ rx = GPIO_NUM_27;
 
 void canbus_setup()
 {
-  CAN_cfg.speed = CAN_SPEED_250KBPS;
-  CAN_cfg.tx_pin_id = GPIO_NUM_14;
+  CAN_cfg.speed = CAN_SPEED_500KBPS;
+  CAN_cfg.tx_pin_id = GPIO_NUM_26;
   CAN_cfg.rx_pin_id = GPIO_NUM_27;
   CAN_cfg.rx_queue = xQueueCreate(rx_queue_size, sizeof(CAN_frame_t));
   // Init CAN Module
@@ -45,9 +44,12 @@ void setup()
   led_setup();
   canbus_setup();
 
+// Set up the custom SPI pins
+spiSD.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
+  
 #ifdef SDCARD
 
-  if (!SD.begin())
+  if (!SD.begin(SD_CS, spiSD))
   { // use default pinout
     Serial.println("Card Mount Failed");
     return;
